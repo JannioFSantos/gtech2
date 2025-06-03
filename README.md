@@ -28,10 +28,15 @@ Este é um projeto backend desenvolvido para o curso IEL com as seguintes funcio
 A interface agora inclui operações completas de Create, Read, Update e Delete (CRUD) para usuários.
 
 1. Acesse a interface frontend: [https://janniofsantos.github.io/gtech2](https://janniofsantos.github.io/gtech2)
+   interface frontend[https://janniofsantos.github.io/gtech2/frontend/](https://janniofsantos.github.io/gtech2/frontend/)
 2. Inicie o servidor backend localmente:
 ```bash
 npm start
+
 ```
+
+3. abrir localmente pasta frontend e index.html com live server
+![alt text](image.png)
 
 **Funcionalidades disponíveis:**
 - Listar todos os usuários
