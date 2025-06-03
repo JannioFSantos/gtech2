@@ -1,0 +1,28 @@
+# Dependências
+node_modules/
+
+# Arquivos de ambiente
+.env
+.env.test
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# Sistema operacional
+.DS_Store
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Banco de dados SQLite
+*.sqlite
+*.sqlite-journal
+
+# Cobertura de testes
+coverage/
