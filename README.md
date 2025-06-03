@@ -24,13 +24,25 @@ Este é um projeto backend desenvolvido para o curso IEL com as seguintes funcio
 
 ## Como testar a API
 
-### Opção 1: Interface Web
-1. Acesse a interface frontend disponível no GitHub Pages: [https://janniofsantos.github.io/gtech2](https://janniofsantos.github.io/gtech2)
-2. Certifique-se que o servidor backend está rodando localmente:
+### Opção 1: Interface Web Completa (CRUD)
+A interface agora inclui operações completas de Create, Read, Update e Delete (CRUD) para usuários.
+
+1. Acesse a interface frontend: [https://janniofsantos.github.io/gtech2](https://janniofsantos.github.io/gtech2)
+2. Inicie o servidor backend localmente:
 ```bash
 npm start
 ```
-3. A interface se conectará automaticamente à API em `http://localhost:3001`
+
+**Funcionalidades disponíveis:**
+- Listar todos os usuários
+- Adicionar novo usuário
+- Editar usuário existente
+- Excluir usuário
+- Visualização em tabela com ordenação
+- Feedback visual para todas as operações
+- Validação de formulários
+
+A interface se conecta automaticamente à API em `http://localhost:3001`
 
 ### Opção 2: Clientes HTTP
 1. Certifique-se que o servidor está rodando:

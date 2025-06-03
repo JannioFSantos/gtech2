@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interface do Projeto Backend IEL</title>
+    <title>CRUD de Usuários - Projeto IEL</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -21,16 +21,48 @@
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 10px;
             text-align: left;
         }
         th {
             background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .action-buttons button {
+            margin: 2px;
         }
         button {
             padding: 8px 16px;
             margin: 5px;
             cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #2196F3;
+            color: white;
+        }
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        .form-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .form-group {
             margin-bottom: 15px;
@@ -38,26 +70,46 @@
         label {
             display: block;
             margin-bottom: 5px;
+            font-weight: bold;
         }
-        input {
+        input, select {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .alert-success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .alert-error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1>Interface do Projeto Backend IEL</h1>
+    <h1>CRUD de Usuários - Projeto IEL</h1>
     <div class="container">
-        <h2>Gerenciamento de Usuários</h2>
+        <div id="alertMessage"></div>
         
         <div>
-            <button onclick="getUsers()">Listar Usuários</button>
-            <button onclick="showAddForm()">Adicionar Usuário</button>
+            <button class="btn-primary" onclick="getUsers()">Atualizar Lista</button>
+            <button class="btn-secondary" onclick="showUserForm()">Adicionar Usuário</button>
         </div>
 
-        <div id="addForm" style="display: none; margin-top: 20px;">
-            <h3>Adicionar Novo Usuário</h3>
+        <div id="userForm" class="form-container hidden">
+            <h3 id="formTitle">Adicionar Novo Usuário</h3>
+            <input type="hidden" id="userId">
             <div class="form-group">
                 <label for="name">Nome:</label>
                 <input type="text" id="name" required>
@@ -67,29 +119,51 @@
                 <input type="email" id="email" required>
             </div>
             <div class="form-group">
+                <label for="role">Função:</label>
+                <select id="role">
+                    <option value="customer">Cliente</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+            <div class="form-group" id="passwordGroup">
                 <label for="password">Senha:</label>
                 <input type="password" id="password" required>
             </div>
-            <button onclick="addUser()">Salvar</button>
-            <button onclick="hideAddForm()">Cancelar</button>
+            <button class="btn-primary" onclick="saveUser()">Salvar</button>
+            <button class="btn-danger" onclick="hideUserForm()">Cancelar</button>
         </div>
 
-        <div id="usersTable"></div>
+        <div id="usersTable">
+            <h3>Carregando usuários...</h3>
+        </div>
     </div>
 
     <script>
         const API_URL = 'http://localhost:3001/api/users';
+        let currentUsers = [];
 
+        // Mostrar mensagem de feedback
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => alertDiv.innerHTML = '', 5000);
+        }
+
+        // Obter lista de usuários
         async function getUsers() {
             try {
                 const response = await fetch(API_URL);
-                const users = await response.json();
-                displayUsers(users);
+                if (!response.ok) throw new Error('Erro ao buscar usuários');
+                
+                currentUsers = await response.json();
+                displayUsers(currentUsers);
             } catch (error) {
-                alert('Erro ao buscar usuários: ' + error.message);
+                showAlert(error.message, 'error');
+                console.error(error);
             }
         }
 
+        // Exibir usuários na tabela
         function displayUsers(users) {
             let html = '<h3>Usuários Cadastrados</h3>';
             
@@ -104,6 +178,7 @@
                                 <th>Nome</th>
                                 <th>Email</th>
                                 <th>Função</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -112,7 +187,11 @@
                                     <td>${user.id}</td>
                                     <td>${user.name}</td>
                                     <td>${user.email}</td>
-                                    <td>${user.role}</td>
+                                    <td>${user.role === 'admin' ? 'Administrador' : 'Cliente'}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn-secondary" onclick="editUser(${user.id})">Editar</button>
+                                        <button class="btn-danger" onclick="deleteUser(${user.id})">Excluir</button>
+                                    </td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -123,40 +202,111 @@
             document.getElementById('usersTable').innerHTML = html;
         }
 
-        function showAddForm() {
-            document.getElementById('addForm').style.display = 'block';
+        // Mostrar formulário para adicionar/editar usuário
+        function showUserForm(user = null) {
+            const form = document.getElementById('userForm');
+            const passwordGroup = document.getElementById('passwordGroup');
+            
+            if (user) {
+                document.getElementById('formTitle').textContent = 'Editar Usuário';
+                document.getElementById('userId').value = user.id;
+                document.getElementById('name').value = user.name;
+                document.getElementById('email').value = user.email;
+                document.getElementById('role').value = user.role;
+                passwordGroup.classList.add('hidden');
+            } else {
+                document.getElementById('formTitle').textContent = 'Adicionar Novo Usuário';
+                document.getElementById('userId').value = '';
+                document.getElementById('name').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('role').value = 'customer';
+                document.getElementById('password').value = '';
+                passwordGroup.classList.remove('hidden');
+            }
+            
+            form.classList.remove('hidden');
         }
 
-        function hideAddForm() {
-            document.getElementById('addForm').style.display = 'none';
+        // Ocultar formulário
+        function hideUserForm() {
+            document.getElementById('userForm').classList.add('hidden');
         }
 
-        async function addUser() {
+        // Editar usuário
+        function editUser(userId) {
+            const user = currentUsers.find(u => u.id == userId);
+            if (user) showUserForm(user);
+        }
+
+        // Salvar usuário (criar ou atualizar)
+        async function saveUser() {
+            const userId = document.getElementById('userId').value;
             const user = {
                 name: document.getElementById('name').value,
                 email: document.getElementById('email').value,
-                password: document.getElementById('password').value
+                role: document.getElementById('role').value
             };
 
+            // Adicionar senha apenas para novos usuários
+            if (!userId) {
+                user.password = document.getElementById('password').value;
+            }
+
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(user)
+                let response;
+                if (userId) {
+                    // Atualizar usuário existente
+                    response = await fetch(`${API_URL}/${userId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(user)
+                    });
+                } else {
+                    // Criar novo usuário
+                    response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(user)
+                    });
+                }
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Falha ao salvar usuário');
+                }
+
+                showAlert(`Usuário ${userId ? 'atualizado' : 'cadastrado'} com sucesso!`);
+                hideUserForm();
+                getUsers();
+            } catch (error) {
+                showAlert(error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        // Excluir usuário
+        async function deleteUser(userId) {
+            if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/${userId}`, {
+                    method: 'DELETE'
                 });
 
-                if (response.ok) {
-                    alert('Usuário cadastrado com sucesso!');
-                    hideAddForm();
-                    getUsers();
-                } else {
+                if (!response.ok) {
                     const error = await response.json();
-                    alert('Erro: ' + (error.error || 'Falha ao cadastrar usuário'));
+                    throw new Error(error.error || 'Falha ao excluir usuário');
                 }
+
+                showAlert('Usuário excluído com sucesso!');
+                getUsers();
             } catch (error) {
-                alert('Erro ao cadastrar usuário: ' + error.message);
+                showAlert(error.message, 'error');
+                console.error(error);
             }
         }
 
