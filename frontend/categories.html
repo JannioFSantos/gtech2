@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Categorias</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .form-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gerenciamento de Categorias</h1>
+    <div class="container">
+        <button onclick="showAddForm()">Adicionar Categoria</button>
+        
+        <div id="categoryForm" class="form-container" style="display: none;">
+            <h3 id="formTitle">Nova Categoria</h3>
+            <input type="hidden" id="categoryId">
+            <div class="form-group">
+                <label for="categoryName">Nome:</label>
+                <input type="text" id="categoryName" required>
+            </div>
+            <div class="form-group">
+                <label for="categoryDescription">Descrição:</label>
+                <textarea id="categoryDescription" rows="3"></textarea>
+            </div>
+            <button onclick="saveCategory()">Salvar</button>
+            <button onclick="hideForm()">Cancelar</button>
+        </div>
+
+        <div id="categoriesTable">
+            <h3>Carregando categorias...</h3>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3001/api/categories';
+
+        // Carregar categorias ao abrir a página
+        document.addEventListener('DOMContentLoaded', getCategories);
+
+        async function getCategories() {
+            try {
+                const response = await fetch(API_URL);
+                const categories = await response.json();
+                displayCategories(categories);
+            } catch (error) {
+                alert('Erro ao carregar categorias: ' + error.message);
+            }
+        }
+
+        function displayCategories(categories) {
+            let html = '<table><thead><tr><th>ID</th><th>Nome</th><th>Descrição</th><th>Ações</th></tr></thead><tbody>';
+            
+            categories.forEach(category => {
+                html += `
+                    <tr>
+                        <td>${category.id}</td>
+                        <td>${category.name}</td>
+                        <td>${category.description || '-'}</td>
+                        <td>
+                            <button onclick="editCategory(${category.id})">Editar</button>
+                            <button onclick="deleteCategory(${category.id})">Excluir</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            document.getElementById('categoriesTable').innerHTML = html;
+        }
+
+        function showAddForm() {
+            document.getElementById('formTitle').textContent = 'Nova Categoria';
+            document.getElementById('categoryId').value = '';
+            document.getElementById('categoryName').value = '';
+            document.getElementById('categoryDescription').value = '';
+            document.getElementById('categoryForm').style.display = 'block';
+        }
+
+        function hideForm() {
+            document.getElementById('categoryForm').style.display = 'none';
+        }
+
+        async function saveCategory() {
+            const id = document.getElementById('categoryId').value;
+            const name = document.getElementById('categoryName').value;
+            const description = document.getElementById('categoryDescription').value;
+
+            const categoryData = { name, description };
+
+            try {
+                let response;
+                if (id) {
+                    // Atualizar categoria existente
+                    response = await fetch(`${API_URL}/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(categoryData)
+                    });
+                } else {
+                    // Criar nova categoria
+                    response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(categoryData)
+                    });
+                }
+
+                if (!response.ok) {
+                    throw new Error('Falha ao salvar categoria');
+                }
+
+                alert('Categoria salva com sucesso!');
+                hideForm();
+                getCategories();
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        }
+
+        async function editCategory(id) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`);
+                const category = await response.json();
+
+                document.getElementById('formTitle').textContent = 'Editar Categoria';
+                document.getElementById('categoryId').value = category.id;
+                document.getElementById('categoryName').value = category.name;
+                document.getElementById('categoryDescription').value = category.description || '';
+                document.getElementById('categoryForm').style.display = 'block';
+            } catch (error) {
+                alert('Erro ao carregar categoria: ' + error.message);
+            }
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('Tem certeza que deseja excluir esta categoria?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Falha ao excluir categoria');
+                }
+
+                alert('Categoria excluída com sucesso!');
+                getCategories();
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
