@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loja Online</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .cart-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            transition: transform 0.3s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .product-title {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .product-price {
+            font-weight: bold;
+            color: #2e7d32;
+            font-size: 20px;
+        }
+        .add-to-cart {
+            width: 100%;
+            padding: 8px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Loja Online</h1>
+        <button class="cart-btn" onclick="viewCart()">
+            Carrinho (<span id="cart-count">0</span>)
+        </button>
+    </div>
+
+    <div class="products-grid" id="products-container">
+        <!-- Produtos serão carregados aqui -->
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3001/api/products';
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        // Carregar produtos ao abrir a página
+        document.addEventListener('DOMContentLoaded', loadProducts);
+
+        async function loadProducts() {
+            try {
+                const response = await fetch(API_URL);
+                const products = await response.json();
+                displayProducts(products);
+                updateCartCount();
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+            }
+        }
+
+        function displayProducts(products) {
+            const container = document.getElementById('products-container');
+            container.innerHTML = '';
+
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+
+                // Usar a primeira imagem ou placeholder se não houver imagens
+                const imageUrl = product.ProductImages && product.ProductImages.length > 0 
+                    ? product.ProductImages[0].imageUrl 
+                    : 'https://via.placeholder.com/250';
+
+                productCard.innerHTML = `
+                    <img src="${imageUrl}" alt="${product.name}" class="product-image">
+                    <h3 class="product-title">${product.name}</h3>
+                    <p>${product.description.substring(0, 50)}...</p>
+                    <p class="product-price">R$ ${product.price.toFixed(2)}</p>
+                    <button class="add-to-cart" onclick="addToCart(${product.id})">
+                        Adicionar ao Carrinho
+                    </button>
+                `;
+
+                container.appendChild(productCard);
+            });
+        }
+
+        function addToCart(productId) {
+            // Implementar lógica para adicionar ao carrinho
+            const existingItem = cart.find(item => item.id === productId);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ id: productId, quantity: 1 });
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            alert('Produto adicionado ao carrinho!');
+        }
+
+        function updateCartCount() {
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cart-count').textContent = count;
+        }
+
+        function viewCart() {
+            // Implementar visualização do carrinho
+            alert('Carrinho de compras:\n' + 
+                cart.map(item => `Produto ${item.id} - Quantidade: ${item.quantity}`).join('\n'));
+        }
+    </script>
+</body>
+</html>

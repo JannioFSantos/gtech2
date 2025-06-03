@@ -19,6 +19,7 @@ app.get('/', (req, res) => {
 // Rotas da API
 app.use('/api/users', userRoutes);
 app.use('/api/categories', require('./routes/categoryRoutes'));
+app.use('/api/products', require('./routes/productRoutes'));
 
 // Middleware de erro
 app.use((err, req, res, next) => {
