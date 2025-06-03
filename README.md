@@ -71,10 +71,4 @@ curl -X POST http://localhost:3001/api/users \
 curl http://localhost:3001/api/users/1
 ```
 
-Ou utilize ferramentas como Postman ou Thunder Client (extensão do VSCode) para testar as requisições.
 
-### Configuração do GitHub Pages
-1. Acesse as configurações do repositório no GitHub
-2. Vá em "Pages" no menu lateral
-3. Selecione a branch `main` e a pasta `/frontend`
-4. Salve as configurações
