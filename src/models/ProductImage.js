@@ -7,16 +7,7 @@ const ProductImage = sequelize.define('ProductImage', {
     primaryKey: true,
     autoIncrement: true
   },
-  imageUrl: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  displayOrder: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    defaultValue: 0
-  },
-  productId: {
+  product_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
@@ -24,17 +15,17 @@ const ProductImage = sequelize.define('ProductImage', {
       key: 'id'
     }
   },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+  enabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+  path: {
+    type: DataTypes.STRING,
+    allowNull: false
   }
 }, {
   tableName: 'product_images',
-  timestamps: false
+  timestamps: true
 });
 
 module.exports = ProductImage;

@@ -9,24 +9,20 @@ const Category = sequelize.define('Category', {
   },
   name: {
     type: DataTypes.STRING,
+    allowNull: false
+  },
+  slug: {
+    type: DataTypes.STRING,
     allowNull: false,
     unique: true
   },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+  use_in_menu: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
 }, {
   tableName: 'categories',
-  timestamps: false
+  timestamps: true
 });
 
 module.exports = Category;

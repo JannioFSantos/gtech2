@@ -2,33 +2,27 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const ProductCategory = sequelize.define('ProductCategory', {
-  productId: {
+  product_id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
+    allowNull: false,
     references: {
       model: 'products',
       key: 'id'
     }
   },
-  categoryId: {
+  category_id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
+    allowNull: false,
     references: {
       model: 'categories',
       key: 'id'
     }
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
   }
 }, {
   tableName: 'product_categories',
-  timestamps: false
+  timestamps: true
 });
 
 module.exports = ProductCategory;

@@ -1,6 +1,14 @@
 require('dotenv').config();
 const app = require('./app');
 const sequelize = require('./config/database');
+const path = require('path');
+const fs = require('fs');
+
+// Garantir que a pasta uploads existe
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Sincronizar modelos com o banco de dados
 sequelize.sync({ alter: true })

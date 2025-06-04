@@ -7,40 +7,42 @@ const Product = sequelize.define('Product', {
     primaryKey: true,
     autoIncrement: true
   },
+  enabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: false
-  },
-  price: {
-    type: DataTypes.DECIMAL(10, 2),
+  slug: {
+    type: DataTypes.STRING,
     allowNull: false,
-    validate: {
-      min: 0
-    }
+    unique: true
+  },
+  use_in_menu: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   stock: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-    validate: {
-      min: 0
-    }
+    defaultValue: 0
   },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+  description: {
+    type: DataTypes.STRING,
+    allowNull: true
   },
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+  price: {
+    type: DataTypes.FLOAT,
+    allowNull: false
+  },
+  price_with_discount: {
+    type: DataTypes.FLOAT,
+    allowNull: false
   }
 }, {
   tableName: 'products',
-  timestamps: false
+  timestamps: true
 });
 
 module.exports = Product;

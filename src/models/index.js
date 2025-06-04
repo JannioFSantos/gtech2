@@ -1,4 +1,4 @@
-const sequelize = require('../server');
+const sequelize = require('../config/database');
 const User = require('./User');
 const Category = require('./Category');
 const Product = require('./Product');
@@ -7,19 +7,19 @@ const ProductOption = require('./ProductOption');
 const ProductCategory = require('./ProductCategory');
 
 // Associações
-Product.hasMany(ProductImage, { foreignKey: 'productId' });
-ProductImage.belongsTo(Product, { foreignKey: 'productId' });
+Product.hasMany(ProductImage, { foreignKey: 'product_id' });
+ProductImage.belongsTo(Product, { foreignKey: 'product_id' });
 
-Product.hasMany(ProductOption, { foreignKey: 'productId' });
-ProductOption.belongsTo(Product, { foreignKey: 'productId' });
+Product.hasMany(ProductOption, { foreignKey: 'product_id' });
+ProductOption.belongsTo(Product, { foreignKey: 'product_id' });
 
 Product.belongsToMany(Category, { 
   through: ProductCategory,
-  foreignKey: 'productId'
+  foreignKey: 'product_id'
 });
 Category.belongsToMany(Product, {
   through: ProductCategory,
-  foreignKey: 'categoryId'
+  foreignKey: 'category_id'
 });
 
 module.exports = {

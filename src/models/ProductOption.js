@@ -7,15 +7,7 @@ const ProductOption = sequelize.define('ProductOption', {
     primaryKey: true,
     autoIncrement: true
   },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  value: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  productId: {
+  product_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
@@ -23,17 +15,29 @@ const ProductOption = sequelize.define('ProductOption', {
       key: 'id'
     }
   },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false
   },
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+  shape: {
+    type: DataTypes.ENUM('square', 'circle'),
+    defaultValue: 'square'
+  },
+  radius: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  type: {
+    type: DataTypes.ENUM('text', 'color'),
+    defaultValue: 'text'
+  },
+  values: {
+    type: DataTypes.STRING,
+    allowNull: false
   }
 }, {
   tableName: 'product_options',
-  timestamps: false
+  timestamps: true
 });
 
 module.exports = ProductOption;

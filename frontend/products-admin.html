@@ -109,7 +109,7 @@
             
             <div class="form-group">
                 <label for="productImages">Imagens:</label>
-                <input type="file" id="productImages" multiple accept="image/*">
+                <input type="file" id="productImages" multiple accept="image/*" onchange="previewImages()">
                 <div class="images-container" id="imagesPreview"></div>
             </div>
             
@@ -208,6 +208,26 @@
             document.getElementById('productForm').style.display = 'none';
         }
 
+        function previewImages() {
+            const preview = document.getElementById('imagesPreview');
+            preview.innerHTML = '';
+            const files = document.getElementById('productImages').files;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'image-preview';
+                    preview.appendChild(img);
+                }
+
+                reader.readAsDataURL(file);
+            }
+        }
+
         function addOption() {
             const container = document.getElementById('optionsContainer');
             const div = document.createElement('div');
@@ -249,7 +269,22 @@
                 options
             };
             
-            // TODO: Implementar upload de imagens
+            // Implementar upload de imagens
+            const imageFiles = document.getElementById('productImages').files;
+            const formData = new FormData();
+            
+            // Adicionar dados do produto
+            formData.append('name', name);
+            formData.append('description', description);
+            formData.append('price', price);
+            formData.append('stock', stock);
+            formData.append('categories', JSON.stringify(categories));
+            formData.append('options', JSON.stringify(options));
+            
+            // Adicionar imagens
+            for (let i = 0; i < imageFiles.length; i++) {
+                formData.append('images', imageFiles[i]);
+            }
             
             try {
                 let response;
@@ -257,19 +292,13 @@
                     // Atualizar produto existente
                     response = await fetch(`${API_URL}/${id}`, {
                         method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(productData)
+                        body: formData
                     });
                 } else {
                     // Criar novo produto
                     response = await fetch(API_URL, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(productData)
+                        body: formData
                     });
                 }
 
