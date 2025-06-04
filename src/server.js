@@ -15,11 +15,28 @@ sequelize.sync({ alter: true })
   .then(() => {
     console.log('Modelos sincronizados com o banco de dados.');
     
-    // Iniciar servidor
-    const PORT = 3001; // Usando porta fixa para teste
-    app.listen(PORT, () => {
-      console.log(`Servidor rodando na porta ${PORT} (modo teste)`);
+// Iniciar servidor
+    const PORT = 3002;
+    const server = app.listen(PORT, 'localhost', () => {
+      console.log(`Servidor rodando em http://localhost:${PORT}`);
+      console.log('Configuração de rotas:');
+      console.log(app._router.stack.filter(layer => layer.name === 'router').map(layer => ({
+        path: layer.regexp.source.replace('\\/?(?=\\/|$)', ''),
+        methods: layer.handle.stack.map(route => route.route.stack[0].method)
+      })));
+      console.log('Rotas registradas:');
+      app._router.stack.forEach(layer => {
+        if (layer.route) {
+          console.log(`${layer.route.stack[0].method.toUpperCase()} ${layer.route.path}`);
+        } else if (layer.name === 'router') {
+          layer.handle.stack.forEach(route => {
+            console.log(`${route.route.stack[0].method.toUpperCase()} /v1${layer.regexp.source.replace('\\/?(?=\\/|$)', '')}${route.route.path}`);
+          });
+        }
+      });
     });
+    
+    module.exports = server;
   })
   .catch(err => {
     console.error('Erro ao sincronizar modelos:', err);

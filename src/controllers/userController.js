@@ -57,6 +57,8 @@ const getUserById = async (req, res) => {
 
 // Cadastrar novo usuário (Requisito 02)
 const createUser = async (req, res) => {
+  console.log('Chegou no controller createUser - Body:', req.body);
+  console.log('Chegou no controller createUser', req.body);
   try {
     const { firstname, surname, email, password, confirmPassword } = req.body;
 
@@ -120,10 +122,24 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Listar todos os usuários
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ['id', 'firstname', 'surname', 'email', 'role', 'createdAt'],
+      order: [['createdAt', 'DESC']]
+    });
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar usuários' });
+  }
+};
+
 module.exports = {
   generateToken,
   getUserById,
   createUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  getAllUsers
 };

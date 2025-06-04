@@ -1,9 +1,24 @@
 const { Product, ProductImage, ProductOption, Category, ProductCategory } = require('../models');
+const { validationResult } = require('express-validator');
+const { Op } = require('sequelize');
+const logger = require('../config/logger');
+const productService = require('../services/productService');
 
 // Requisito 01 - Buscar produtos com filtros
 exports.searchProducts = async (req, res) => {
     try {
+        // Validar parâmetros
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            logger.warn('Parâmetros inválidos na busca de produtos', { errors: errors.array() });
+            return res.status(400).json({ errors: errors.array() });
+        }
+
         const { limit = 12, page = 1, fields, match, category_ids, price_range, option } = req.query;
+        
+        // Sanitizar inputs
+        const sanitizedLimit = Math.min(parseInt(limit), 100);
+        const sanitizedPage = Math.max(parseInt(page), 1);
         
         const options = {
             attributes: fields ? fields.split(',') : ['id', 'name', 'slug', 'price', 'price_with_discount'],
@@ -58,20 +73,34 @@ exports.searchProducts = async (req, res) => {
         }
 
         if (limit !== '-1') {
-            options.limit = parseInt(limit);
-            options.offset = (parseInt(page) - 1) * parseInt(limit);
+            options.limit = sanitizedLimit;
+            options.offset = (sanitizedPage - 1) * sanitizedLimit;
         }
 
         const { count, rows } = await Product.findAndCountAll(options);
 
-        res.status(200).json({
+        // Cachear resultados
+        const cacheKey = `products:${JSON.stringify(req.query)}`;
+        const cached = await productService.getFromCache(cacheKey);
+        if (cached) {
+            return res.status(200).json(cached);
+        }
+
+        const response = {
             data: rows,
             total: count,
-            limit: limit === '-1' ? count : parseInt(limit),
-            page: parseInt(page)
-        });
+            limit: limit === '-1' ? count : sanitizedLimit,
+            page: sanitizedPage
+        };
+
+        await productService.setCache(cacheKey, response, 60); // Cache por 1 minuto
+        res.status(200).json(response);
     } catch (error) {
-        res.status(400).json({ error: 'Parâmetros de busca inválidos' });
+        logger.error('Erro ao buscar produtos', { error: error.message, stack: error.stack });
+        res.status(400).json({ 
+            error: 'Parâmetros de busca inválidos',
+            details: error.message 
+        });
     }
 };
 

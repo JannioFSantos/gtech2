@@ -1,12 +1,23 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({ mergeParams: true }); // Habilita merge de parâmetros
 const userController = require('../controllers/userController');
+const authMiddleware = require('../middleware/authMiddleware');
 
-// Rotas para usuários
-router.post('/v1/user/token', userController.generateToken); // Requisito 01 - Seção 05
-router.get('/v1/user/:id', userController.getUserById); // Requisito 01 - Seção 02
-router.post('/v1/user', userController.createUser); // Requisito 02 - Seção 02
-router.put('/v1/user/:id', userController.updateUser); // Requisito 04 - Seção 02
-router.delete('/v1/user/:id', userController.deleteUser); // Requisito 05 - Seção 02
+// Middleware de log
+router.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
+// Rotas públicas
+router.post('/token', userController.generateToken);
+router.post('/register', userController.createUser);
+
+// Rotas protegidas
+router.use(authMiddleware); // Aplica middleware para todas as rotas abaixo
+router.get('/', userController.getAllUsers);
+router.get('/:id', userController.getUserById);
+router.put('/:id', userController.updateUser);
+router.delete('/:id', userController.deleteUser);
 
 module.exports = router;
