@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Pedidos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .order-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .order-items {
+            margin-top: 15px;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .order-total {
+            font-weight: bold;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            text-align: right;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status-processing {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <nav style="background-color: #333; padding: 10px; margin-bottom: 20px;">
+        <a href="index.html" style="color: white; margin-right: 15px; text-decoration: none;">Home</a>
+        <a href="products.html" style="color: white; margin-right: 15px; text-decoration: none;">Produtos</a>
+        <a href="cart.html" style="color: white; margin-right: 15px; text-decoration: none;">Carrinho</a>
+        <a href="orders.html" style="color: white; margin-right: 15px; text-decoration: none;">Meus Pedidos</a>
+        <a href="categories.html" style="color: white; margin-right: 15px; text-decoration: none;">Categorias</a>
+    </nav>
+    <h1>Meus Pedidos</h1>
+    
+    <div id="ordersList">
+        <p>Carregando seus pedidos...</p>
+    </div>
+
+    <script>
+        // URL da API - substitua pela sua URL real
+        const API_URL = 'http://localhost:3001/api/orders';
+        
+        // Carregar pedidos ao abrir a página
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOrders();
+        });
+
+        // Carregar pedidos do usuário
+        async function loadOrders() {
+            try {
+                // Simulando dados de pedidos - na implementação real, isso viria da API
+                const orders = [
+                    {
+                        id: 1001,
+                        date: '2025-05-15',
+                        status: 'completed',
+                        items: [
+                            { name: 'Produto A', quantity: 1, price: 99.90 },
+                            { name: 'Produto B', quantity: 2, price: 49.90 }
+                        ],
+                        total: 199.70
+                    },
+                    {
+                        id: 1002,
+                        date: '2025-06-01',
+                        status: 'processing',
+                        items: [
+                            { name: 'Produto C', quantity: 1, price: 79.90 }
+                        ],
+                        total: 79.90
+                    }
+                ];
+
+                displayOrders(orders);
+                
+                // Na implementação real, usaria:
+                // const response = await fetch(API_URL);
+                // const orders = await response.json();
+                // displayOrders(orders);
+                
+            } catch (error) {
+                console.error('Erro ao carregar pedidos:', error);
+                document.getElementById('ordersList').innerHTML = 
+                    '<p>Erro ao carregar pedidos. Tente novamente mais tarde.</p>';
+            }
+        }
+
+        // Exibir pedidos na página
+        function displayOrders(orders) {
+            const container = document.getElementById('ordersList');
+            
+            if (orders.length === 0) {
+                container.innerHTML = '<p>Você ainda não fez nenhum pedido.</p>';
+                return;
+            }
+
+            let html = '';
+            orders.forEach(order => {
+                const statusClass = order.status === 'completed' ? 
+                    'status-completed' : 'status-processing';
+                const statusText = order.status === 'completed' ? 
+                    'Concluído' : 'Em processamento';
+
+                html += `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <h3>Pedido #${order.id}</h3>
+                                <p>Data: ${order.date}</p>
+                            </div>
+                            <span class="status ${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <div class="order-items">
+                            ${order.items.map(item => `
+                                <div class="order-item">
+                                    <span>${item.name} (${item.quantity}x)</span>
+                                    <span>R$ ${(item.price * item.quantity).toFixed(2)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="order-total">
+                            Total: R$ ${order.total.toFixed(2)}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

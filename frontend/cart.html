@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho de Compras</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .cart-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        .cart-items {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .cart-summary {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .cart-item {
+            display: grid;
+            grid-template-columns: 100px 1fr 100px 100px;
+            gap: 20px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+        .cart-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        .quantity-control {
+            display: flex;
+            align-items: center;
+        }
+        .quantity-control button {
+            width: 30px;
+            height: 30px;
+            background-color: #f0f0f0;
+            border: none;
+            cursor: pointer;
+        }
+        .quantity-control input {
+            width: 50px;
+            text-align: center;
+            margin: 0 5px;
+        }
+        .remove-item {
+            color: #f44336;
+            cursor: pointer;
+        }
+        .checkout-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .empty-cart {
+            text-align: center;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <nav style="background-color: #333; padding: 10px; margin-bottom: 20px;">
+        <a href="index.html" style="color: white; margin-right: 15px; text-decoration: none;">Home</a>
+        <a href="products.html" style="color: white; margin-right: 15px; text-decoration: none;">Produtos</a>
+        <a href="cart.html" style="color: white; margin-right: 15px; text-decoration: none;">Carrinho</a>
+        <a href="orders.html" style="color: white; margin-right: 15px; text-decoration: none;">Meus Pedidos</a>
+        <a href="categories.html" style="color: white; margin-right: 15px; text-decoration: none;">Categorias</a>
+    </nav>
+    <h1>Carrinho de Compras</h1>
+    <div class="cart-container">
+        <div class="cart-items" id="cartItems">
+            <!-- Itens serão carregados aqui -->
+        </div>
+        
+        <div class="cart-summary">
+            <h2>Resumo do Pedido</h2>
+            <div id="cartSummary">
+                <!-- Resumo será carregado aqui -->
+            </div>
+            <button class="checkout-btn" onclick="proceedToCheckout()">Pagar</button>
+        </div>
+    </div>
+
+    <script>
+        // Carregar carrinho do localStorage
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        
+        // Carregar itens do carrinho ao abrir a página
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCartItems();
+            updateCartSummary();
+        });
+
+        // Carregar itens do carrinho
+        async function loadCartItems() {
+            const container = document.getElementById('cartItems');
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <h3>Seu carrinho está vazio</h3>
+                        <p>Volte à loja para adicionar itens</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Buscar detalhes dos produtos
+            try {
+                const productIds = cart.map(item => item.id).join(',');
+                const response = await fetch(`http://localhost:3001/api/products?ids=${productIds}`);
+                const products = await response.json();
+
+                let html = '';
+                products.forEach(product => {
+                    const cartItem = cart.find(item => item.id === product.id);
+                    const imageUrl = product.ProductImages && product.ProductImages.length > 0 
+                        ? product.ProductImages[0].imageUrl 
+                        : 'https://via.placeholder.com/100';
+
+                    html += `
+                        <div class="cart-item" data-id="${product.id}">
+                            <img src="${imageUrl}" alt="${product.name}">
+                            <div>
+                                <h3>${product.name}</h3>
+                                <p>R$ ${product.price.toFixed(2)}</p>
+                            </div>
+                            <div class="quantity-control">
+                                <button onclick="updateQuantity(${product.id}, -1)">-</button>
+                                <input type="number" value="${cartItem.quantity}" min="1" 
+                                    onchange="updateQuantityInput(${product.id}, this.value)">
+                                <button onclick="updateQuantity(${product.id}, 1)">+</button>
+                            </div>
+                            <div>
+                                <p>R$ ${(product.price * cartItem.quantity).toFixed(2)}</p>
+                                <p class="remove-item" onclick="removeItem(${product.id})">Remover</p>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Erro ao carregar carrinho:', error);
+            }
+        }
+
+        // Atualizar quantidade pelo botão +/-
+        function updateQuantity(productId, change) {
+            const item = cart.find(item => item.id === productId);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity < 1) item.quantity = 1;
+                saveCart();
+                loadCartItems();
+                updateCartSummary();
+            }
+        }
+
+        // Atualizar quantidade pelo input
+        function updateQuantityInput(productId, value) {
+            const quantity = parseInt(value) || 1;
+            const item = cart.find(item => item.id === productId);
+            if (item) {
+                item.quantity = quantity;
+                saveCart();
+                updateCartSummary();
+            }
+        }
+
+        // Remover item do carrinho
+        function removeItem(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            saveCart();
+            loadCartItems();
+            updateCartSummary();
+        }
+
+        // Atualizar resumo do carrinho
+        function updateCartSummary() {
+            const summary = document.getElementById('cartSummary');
+            let subtotal = 0;
+            let totalItems = 0;
+
+            cart.forEach(item => {
+                subtotal += item.price * item.quantity;
+                totalItems += item.quantity;
+            });
+
+            summary.innerHTML = `
+                <p>Itens: ${totalItems}</p>
+                <p>Subtotal: R$ ${subtotal.toFixed(2)}</p>
+                <p>Frete: A calcular</p>
+                <hr>
+                <h3>Total: R$ ${subtotal.toFixed(2)}</h3>
+            `;
+        }
+
+        // Salvar carrinho no localStorage
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        // Finalizar compra
+        function proceedToCheckout() {
+            if (cart.length === 0) {
+                alert('Seu carrinho está vazio!');
+                return;
+            }
+            window.location.href = 'checkout.html';
+        }
+    </script>
+</body>
+</html>
